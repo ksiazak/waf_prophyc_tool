@@ -18,7 +18,7 @@ Example::
             patch='test.patch',
             source='test.hpp',
             install_path='/tmp/',
-            target='prohyc_test)
+            target='prohyc_test')
 
         bld.prophyc(
             features='cxx',
@@ -27,12 +27,21 @@ Example::
             patch='test.patch',
             source='test.hpp',
             install_path='/tmp/',
-            target='prohyc_test)
+            target='prohyc_test')
+
+        bld(
+            features='prophyc cxx export-includes-to-prophyc-gen',
+            input_mode='isar',
+            output_mode='cpp_full_out',
+            patch='test.patch',
+            source='test.hpp',
+            install_path='/tmp/',
+            target='prohyc_test')
 """
 
 import os
 from waflib.Task import Task
-from waflib.TaskGen import feature, extension
+from waflib.TaskGen import feature, extension, after_method
 from waflib.Configure import conf
 from waflib.Node import Node
 from waflib import Utils
@@ -43,6 +52,7 @@ USELIB_VARS['prophyc'] = set(['INCLUDES'])
 class prophyc(Task):
     run_str = '${PROPHYC} ${PROPHYC_INPUT_MODE} ${PROPHYC_PATCH} ${PROPHYC_PATCH_FILE} ${PROPHYC_ST:INCPATHS} ${PROPHYC_OUTPUT_MODE} ${TGT[0].parent.abspath()} ${SRC[0].abspath()}'
     color = 'BLUE'
+    ext_out = ['.h']
 
 prophyc_input_modes = [
     'prophy',
@@ -118,3 +128,14 @@ def prophyc(bld, *k, **kw):
     except(KeyError):
         kw['features'] = 'prophyc'
     return bld(*k, **kw)
+
+@feature('export-includes-to-prophyc-gen')
+@after_method('process_source')
+def export_includes_to_prophyc_gen_func(self):
+    files = filter(lambda file: self.bld.bldnode.abspath() in file.abspath(), self.source)
+    export_includes = list(set([file.get_bld().parent for file in files]))
+    try:
+        self.export_includes = self.to_incnodes(self.export_includes)
+    except(AttributeError):
+        self.export_includes = []
+    self.export_includes += export_includes
