@@ -52,7 +52,8 @@ USELIB_VARS['prophyc'] = set(['INCLUDES'])
 class prophyc(Task):
     run_str = '${PROPHYC} ${PROPHYC_INPUT_MODE} ${PROPHYC_PATCH} ${PROPHYC_PATCH_FILE} ${PROPHYC_ST:INCPATHS} ${PROPHYC_OUTPUT_MODE} ${TGT[0].parent.abspath()} ${SRC[0].abspath()}'
     color = 'BLUE'
-    ext_out = ['.h']
+    ext_in = ['.prophy', '.h', '.hpp', '.xml']
+    ext_out = ['.h', '.c', '.hpp', '.cpp', '.py']
 
 prophyc_input_modes = [
     'prophy',
